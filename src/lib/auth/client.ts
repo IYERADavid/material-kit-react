@@ -1,5 +1,6 @@
 'use client';
 
+import axios from 'axios';
 import type { User } from '@/types/user';
 
 function generateToken(): string {
@@ -18,7 +19,6 @@ const user = {
 
 export interface SignUpParams {
   firstName: string;
-  lastName: string;
   email: string;
   password: string;
 }
@@ -37,14 +37,28 @@ export interface ResetPasswordParams {
 }
 
 class AuthClient {
-  async signUp(_: SignUpParams): Promise<{ error?: string }> {
+  async signUp(params: SignUpParams): Promise<{ error?: string }> {
+    const { firstName, email, password } = params;
+    let response;
     // Make API request
+    try {
+      // Send POST request to the API to create the user
+      response = await axios.post('/api/users', {
+        name: firstName,
+        email: email,
+        password: password,
+      });
+      console.log(response);
+      
+    } catch (error) {
+    
+    }
 
     // We do not handle the API, so we'll just generate a token and store it in localStorage.
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
 
-    return {};
+    return response?.data;
   }
 
   async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
