@@ -9,16 +9,9 @@ function generateToken(): string {
   return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
 }
 
-const user = {
-  id: 'USR-000',
-  avatar: '/assets/avatar.png',
-  firstName: 'Sofia',
-  lastName: 'Rivers',
-  email: 'sofia@devias.io',
-} satisfies User;
 
 export interface SignUpParams {
-  firstName: string;
+  fullName: string;
   email: string;
   password: string;
 }
@@ -38,13 +31,13 @@ export interface ResetPasswordParams {
 
 class AuthClient {
   async signUp(params: SignUpParams): Promise<{ error?: string }> {
-    const { firstName, email, password } = params;
+    const { fullName, email, password } = params;
     let response;
     // Make API request
     try {
       // Send POST request to the API to create the user
-      response = await axios.post('/api/users', {
-        name: firstName,
+      response = await axios.post('/api/user', {
+        name: fullName,
         email: email,
         password: password,
       });
@@ -54,9 +47,7 @@ class AuthClient {
     
     }
 
-    // We do not handle the API, so we'll just generate a token and store it in localStorage.
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
+    localStorage.setItem('custom-auth-token', response?.data.token);
 
     return response?.data;
   }
@@ -91,15 +82,24 @@ class AuthClient {
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {
     // Make API request
+    let response;
+    try {
+      response = await axios.get('/api/user', {
+        params: { token: localStorage.getItem('custom-auth-token') }
+      });
+      console.log(response);
+    } catch (error) {
+      
+    }
 
     // We do not handle the API, so just check if we have a token in localStorage.
-    const token = localStorage.getItem('custom-auth-token');
+    // const token = localStorage.getItem('custom-auth-token');
 
-    if (!token) {
+    if (!response?.data) {
       return { data: null };
     }
 
-    return { data: user };
+    return { data: response?.data };
   }
 
   async signOut(): Promise<{ error?: string }> {

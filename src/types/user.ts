@@ -1,8 +1,19 @@
 export interface User {
-  id: string;
-  name?: string;
-  avatar?: string;
-  email?: string;
+  id: number,
+  names: string,
+  email: string,
+  user_type: number,
+  phone: string | undefined,
+  token: string,
+  isOnline: string,
+  savedDate: string
 
   [key: string]: unknown;
+}
+
+export interface  updateUser {
+  userId: number,
+  names: string,
+  email: string,
+  phone: string,
 }

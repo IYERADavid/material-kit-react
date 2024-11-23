@@ -19,20 +19,28 @@ import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 
 import { paths } from '@/paths';
-import { authClient } from '@/lib/auth/client';
+import { authClient } from '@/clients/authClient';
 import { useUser } from '@/hooks/use-user';
 
 const schema = zod.object({
-  firstName: zod.string().min(1, { message: 'First name is required' }),
-  // lastName: zod.string().min(1, { message: 'Last name is required' }),
+  fullName: zod.string().min(1, { message: 'FullName name is required' }),
   email: zod.string().min(1, { message: 'Email is required' }).email(),
   password: zod.string().min(6, { message: 'Password should be at least 6 characters' }),
+  confirmPassword: zod.string().min(6, { message: 'Confirm password should be at least 6 characters' }),
   terms: zod.boolean().refine((value) => value, 'You must accept the terms and conditions'),
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      path: ['confirmPassword'],
+      message: 'Passwords do not match',
+      code: zod.ZodIssueCode.custom,
+    });
+  }
 });
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { firstName: '', email: '', password: '', terms: false } satisfies Values;
+const defaultValues = { fullName: '', email: '', password: '', confirmPassword: '', terms: false } satisfies Values;
 
 export function SignUpForm(): React.JSX.Element {
   const router = useRouter();
@@ -52,8 +60,6 @@ export function SignUpForm(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       setIsPending(true);
 
-      console.log("reached");
-      
       const { error } = await authClient.signUp(values);
 
       if (error) {
@@ -67,7 +73,7 @@ export function SignUpForm(): React.JSX.Element {
 
       // UserProvider, for this case, will not refresh the router
       // After refresh, GuestGuard will handle the redirect
-      // router.refresh();
+      router.refresh();
     },
     [checkSession, router, setError]
   );
@@ -87,12 +93,12 @@ export function SignUpForm(): React.JSX.Element {
         <Stack spacing={2}>
           <Controller
             control={control}
-            name="firstName"
+            name="fullName"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.firstName)}>
+              <FormControl error={Boolean(errors.fullName)}>
                 <InputLabel>Full Name</InputLabel>
                 <OutlinedInput {...field} label="Full Name" />
-                {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
+                {errors.fullName ? <FormHelperText>{errors.fullName.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -118,6 +124,19 @@ export function SignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
+
+          <Controller
+            control={control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormControl error={Boolean(errors.confirmPassword)}>
+                <InputLabel>Confirm Password</InputLabel>
+                <OutlinedInput {...field} label="Confirm Password" type="password" />
+                {errors.confirmPassword ? <FormHelperText>{errors.confirmPassword.message}</FormHelperText> : null}
+              </FormControl>
+            )}
+          />
+
           <Controller
             control={control}
             name="terms"
