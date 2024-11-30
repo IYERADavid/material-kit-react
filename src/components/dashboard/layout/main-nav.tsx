@@ -16,6 +16,7 @@ import { usePopover } from '@/hooks/use-popover';
 
 import { MobileNav } from './mobile-nav';
 import { UserPopover } from './user-popover';
+import { Logo } from '@/components/core/logo';
 
 export function MainNav(): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
@@ -48,13 +49,16 @@ export function MainNav(): React.JSX.Element {
             >
               <ListIcon />
             </IconButton>
+            <Tooltip title="Home" sx={{ display: { sm: 'none' } }}>
+              <Logo color="dark" height={32} width={122} />
+            </Tooltip>
+          </Stack>
+          <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
             <Tooltip title="Search">
               <IconButton>
                 <MagnifyingGlassIcon />
               </IconButton>
             </Tooltip>
-          </Stack>
-          <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
             <Tooltip title="Contacts">
               <IconButton>
                 <UsersIcon />

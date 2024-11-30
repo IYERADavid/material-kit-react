@@ -64,3 +64,32 @@ export async function updateUserById(user: updateUser) {
   const [updatedUser] = await db.execute('SELECT * FROM system_users WHERE id = ?',[id]);
   return (updatedUser as mysql.RowDataPacket[])[0] || null;
 }
+
+export async function signUserIn(authDetails: { email: string; password: string }) {
+  const { email, password } = authDetails;
+
+  try {
+    // Fetch user by email
+    const [rows]: any = await db.execute('SELECT * FROM system_users WHERE email = ?', [email]);
+
+    if (rows.length === 0) {
+      return { success: false, message: 'User not found' };
+    }
+
+    const user = rows[0];
+
+    // Check if the provided password matches the stored hashed password
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      return { success: false, message: 'Invalid password' };
+    }
+
+    // console.log(user);
+    // User authenticated successfully
+    return { success: true, user: user };
+  } catch (error) {
+    console.error('Error signing in user:', error);
+    return { success: false, message: 'An error occurred while signing in' };
+  }
+}

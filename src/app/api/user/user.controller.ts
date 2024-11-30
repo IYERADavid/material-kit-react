@@ -1,5 +1,6 @@
 // app/api/users/user.controller.ts
 import { NextResponse } from 'next/server';
+import * as userModel from './user.model';
 import * as userService from './user.service';
 import { UserDTO, UpdateUserDTO } from './user.dto';
 import { updateUser } from '@/types/user';
@@ -81,5 +82,22 @@ export async function updateUserById(userData: updateUser) {
     } else {
         return NextResponse.json({ message: 'An unknown error occurred' }, { status: 500 });
     }
+  }
+}
+
+export async function signUserIn(authDetails: any) {
+  try {
+    const loginData = await userModel.signUserIn(authDetails);
+    if (loginData.success != true) {
+      console.log(loginData);
+      return NextResponse.json({ error: loginData.message });
+    }
+    return NextResponse.json( loginData?.user, { status: 201 });
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: 'Error logging user in', error: error.message }, { status: 500 });
+  } else {
+      return NextResponse.json({ message: 'An unknown error occurred' }, { status: 500 });
+  }
   }
 }

@@ -59,17 +59,23 @@ class AuthClient {
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
     const { email, password } = params;
 
-    // Make API request
-
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    if (email !== 'sofia@devias.io' || password !== 'Secret1') {
+    if (email == '' || password == "") {
       return { error: 'Invalid credentials' };
     }
 
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
+    const authDetails = { email: email, password: password, }
+    let response;
 
-    return {};
+    try {
+      response = await axios.get('/api/user', {
+        params : { authDetails: JSON.stringify(authDetails) }
+      });
+    } catch (error) {
+    
+    }
+
+    localStorage.setItem('custom-auth-token', response?.data.token);
+    return response?.data;
   }
 
   async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
@@ -81,25 +87,27 @@ class AuthClient {
   }
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {
+    const token = localStorage.getItem('custom-auth-token');
     // Make API request
-    let response;
-    try {
-      response = await axios.get('/api/user', {
-        params: { token: localStorage.getItem('custom-auth-token') }
-      });
-      console.log(response);
-    } catch (error) {
-      
+    if (token) {
+
+      let response;
+      try {
+        response = await axios.get('/api/user', {
+          params: { token: token}
+        });
+        console.log(response);
+      } catch (error) {
+        
+      }
+
+      if (!response?.data) {
+        return { data: null };
+      }
+
+      return { data: response?.data };
     }
-
-    // We do not handle the API, so just check if we have a token in localStorage.
-    // const token = localStorage.getItem('custom-auth-token');
-
-    if (!response?.data) {
-      return { data: null };
-    }
-
-    return { data: response?.data };
+    return { data: null };
   }
 
   async signOut(): Promise<{ error?: string }> {

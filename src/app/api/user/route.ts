@@ -1,6 +1,6 @@
 // app/api/users/route.ts
 import { updateUser } from '@/types/user';
-import { createUser, getUserById, getAllUsers, getUserByToken, updateUserById } from './user.controller';
+import { createUser, getUserById, getAllUsers, signUserIn, getUserByToken, updateUserById } from './user.controller';
 
 export async function POST(request: Request) {
     console.log("reached");
@@ -13,13 +13,17 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const token = searchParams.get('token');
+  const authDetails = searchParams.get('authDetails');
 
   if (id && !isNaN(Number(id))) {
     return getUserById(parseInt(id));
   } else if(token) {
     return getUserByToken(token);
+  } else if (authDetails)  {
+    let userAuthDetails = JSON.parse(authDetails);
+    return signUserIn(userAuthDetails);
   }
-
+  return;
 }  
 
 export async function PUT(req: Request) {
